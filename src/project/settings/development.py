@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'graphql_auth',
     'django_filters',
     'boto3',
+    'storages',
     'authentication',
     'photo_gallery',
     'photos',
@@ -38,11 +39,12 @@ GRAPHQL_AUTH = {
 
 ALLOWED_HOSTS = ['*']
 
-AWS_QUERYSTRING_AUTH = config("AWS_QUERYSTRING_AUTH")
-AWS_DEFAULT_ACL = config("AWS_DEFAULT_ACL")
-
-AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACESS_KEY = config("AWS_SECRET_ACESS_KEY")
-AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+# S3 Bucket configs
 
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+
+AWS_QUERYSTRING_AUTH = config("AWS_QUERYSTRING_AUTH")
