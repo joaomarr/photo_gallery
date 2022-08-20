@@ -38,7 +38,6 @@ class TestQuery(TestCase):
         """
 
         result = schema.execute(query)
-        print(result)
         users = result.data['users']['edges']
         for user in users:
             self.assertEqual(user.node.isActive, True)
