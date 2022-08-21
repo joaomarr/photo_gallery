@@ -4,8 +4,8 @@ from authentication.models import User
 
 class Post(models.Model):
     file = models.ForeignKey('photos.Photo', verbose_name='File', related_name="post_file", on_delete=models.PROTECT, blank=False)
-    owner = models.ForeignKey(User, verbose_name='Owner', on_delete=models.PROTECT)
-    likes = models.ManyToManyField(User, related_name="liked_posts")
+    owner = models.ForeignKey(User, verbose_name='Owner', on_delete=models.PROTECT, blank=False)
+    likes = models.ManyToManyField(User, related_name="liked_posts", blank=True)
     comments = models.ManyToManyField(User, related_name="commented_posts", through="Comment")
     is_approved = models.BooleanField(verbose_name='Is approved', default=False)
     created_at = models.DateTimeField(verbose_name='Uploaded at', auto_now_add=timezone.now)
