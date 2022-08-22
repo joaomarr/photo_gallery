@@ -8,24 +8,36 @@ from graphene_file_upload.scalars import Upload
 from photos.models import Photo
 from photo_gallery.models import Post, Comment
 
+class LikesType(graphene.ObjectType):
+    user = graphene.ID()
+    post = graphene.ID()
 
 class PostType(DjangoObjectType):
     """ Post type object """
 
     id = graphene.ID(required=True)
-    # owner = graphene.ID(source=)
+    likes = graphene.List(LikesType)
+
+    @staticmethod
+    def resolve_likes(post, *args, **kwargs):
+        return post.likes.all()
 
     class Meta:
         model = Post
         filter_fields = [
             'id',
-            'file',
             'owner',
-            'likes',
-            'comments',
             'is_approved',
         ]
         interfaces = (graphene.relay.Node, )
+
+class CommentType(DjangoObjectType):
+    """ Like type object """
+    class Meta:
+        model = Comment
+        interfaces = (graphene.relay.Node, )
+
+
 
 class UploadPost(graphene.Mutation):
     """ Upload a Post """
@@ -70,7 +82,7 @@ class ToggleLikePost(graphene.Mutation):
 
                 return ToggleLikePost(success=True)
             else:
-                post.likes.add(info.context.user.pk)
+                post.likes.add(info.context.user)
                 post.save()
                 return ToggleLikePost(success=True)
         except Exception as e:
@@ -85,25 +97,31 @@ class CommentPost(graphene.Mutation):
 
     class Arguments:
         post_id = graphene.ID(required=True)
+        text = graphene.String(required=True)
 
-    def mutate(self, info, post_id, **kwargs):
+    def mutate(self, info, post_id, text, **kwargs):
 
-        post = Post.objects.filter(id=post_id)
+        try:
+            post = Post.objects.get(id=post_id)
 
-        if post.exists():
-            ...
-        else:
-            errors = ['givenPostNotFind']
-            return ToggleLikePost(success=False, errors=errors)
+            post.comments.add(info.context.user, through_defaults={'text': text})
+            post.save()
+            return CommentPost(success=True)
+        except Exception as e:
+            errors = [e]
+            return CommentPost(success=False, errors=errors)
         
 class Mutation:
     upload_post = UploadPost.Field()
     toggle_like_post = ToggleLikePost.Field()
+    comment_post = CommentPost.Field()
 
 class Query:
     post = graphene.Field(PostType)
     posts = DjangoFilterConnectionField(PostType)
+    comments = graphene.List(CommentType)
 
     @staticmethod
     def resolver_posts(cls, info, **kwargs):
         return Post.objects.all()
+
