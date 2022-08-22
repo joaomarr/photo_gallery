@@ -4,7 +4,6 @@ import graphene
 from faker import Faker
 from project.schema import Mutation
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene_file_upload.django.testing import GraphQLFileUploadTestCase
 from graphql_jwt.testcases import JSONWebTokenTestCase

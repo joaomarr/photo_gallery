@@ -4,19 +4,17 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import login_required
 from graphene_file_upload.scalars import Upload
+from authentication.schema import UserType
 
 from photos.models import Photo
 from photo_gallery.models import Post, Comment
 
-class LikesType(graphene.ObjectType):
-    user = graphene.ID()
-    post = graphene.ID()
 
 class PostType(DjangoObjectType):
     """ Post type object """
 
     id = graphene.ID(required=True)
-    likes = graphene.List(LikesType)
+    likes = graphene.List(UserType)
 
     @staticmethod
     def resolve_likes(post, *args, **kwargs):
@@ -31,8 +29,10 @@ class PostType(DjangoObjectType):
         ]
         interfaces = (graphene.relay.Node, )
 
+
 class CommentType(DjangoObjectType):
-    """ Like type object """
+    """ Comment type object """
+    
     class Meta:
         model = Comment
         interfaces = (graphene.relay.Node, )
@@ -110,17 +110,46 @@ class CommentPost(graphene.Mutation):
         except Exception as e:
             errors = [e]
             return CommentPost(success=False, errors=errors)
+
+class PostApproval(graphene.Mutation):
+    success = graphene.Boolean()
+    errors = graphene.List(graphene.String)
+
+    class Arguments:
+        post_id = graphene.ID(required=True)
+        approve = graphene.Boolean(required=True)
+
+    def mutate(self, info, post_id, approve, **kwargs):
+
+        if info.context.user.is_staff:
+            try:
+                post = Post.objects.get(id=post_id)
+
+                if approve == True:
+                    post.is_approved = True
+                    post.save()
+                else:
+                    post.delete()
+
+                return PostApproval(success=True)
+            except Exception as e:
+                errors = [e]
+                return PostApproval(success=False, errors=errors)
+
+        errors = ['userIsNotStaff']
+        return PostApproval(success=False, errors=errors)
         
 class Mutation:
     upload_post = UploadPost.Field()
     toggle_like_post = ToggleLikePost.Field()
     comment_post = CommentPost.Field()
+    post_approval = PostApproval.Field()
 
 class Query:
-    post = graphene.Field(PostType)
     posts = DjangoFilterConnectionField(PostType)
     comments = graphene.List(CommentType)
 
+    @login_required
     @staticmethod
     def resolver_posts(cls, info, **kwargs):
         return Post.objects.all()
