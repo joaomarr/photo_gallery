@@ -1,4 +1,5 @@
 import graphene
+import django_filters
 
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -7,13 +8,13 @@ from graphene_file_upload.scalars import Upload
 from authentication.schema import UserType
 
 from photos.models import Photo
-from photo_gallery.models import Post, Comment
+from photo_gallery.models import Post, Comment, User
 
 
 class PostType(DjangoObjectType):
     """ Post type object """
 
-    id = graphene.ID(required=True)
+    id = graphene.ID(source='pk', required=True)
     likes = graphene.List(UserType)
 
     @staticmethod
@@ -36,8 +37,6 @@ class CommentType(DjangoObjectType):
     class Meta:
         model = Comment
         interfaces = (graphene.relay.Node, )
-
-
 
 class UploadPost(graphene.Mutation):
     """ Upload a Post """
@@ -104,8 +103,9 @@ class CommentPost(graphene.Mutation):
         try:
             post = Post.objects.get(id=post_id)
 
-            post.comments.add(info.context.user, through_defaults={'text': text})
-            post.save()
+            comment = Comment.objects.create(owner=info.context.user, post=post, text=text)
+            comment.save()
+
             return CommentPost(success=True)
         except Exception as e:
             errors = [e]

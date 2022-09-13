@@ -5,7 +5,6 @@ from graphql_jwt.decorators import login_required
 
 from photos.models import Photo
 
-
 class PhotoType(DjangoObjectType):
     """ Photo type object """
 

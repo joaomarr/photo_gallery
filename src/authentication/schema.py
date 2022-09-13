@@ -11,11 +11,11 @@ class UserType(DjangoObjectType):
 class AuthMutation(graphene.ObjectType):
     register = mutations.Register.Field()
     token_auth = mutations.ObtainJSONWebToken.Field()
+    refresh_token = mutations.RefreshToken.Field()
     send_password_reset_email = mutations.SendPasswordResetEmail.Field()
 
 class Query(UserQuery, MeQuery, graphene.ObjectType):
     pass
-
 
 class Mutation(AuthMutation, graphene.ObjectType):
     pass

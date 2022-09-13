@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
+from datetime import timedelta
 from decouple import config
 from pathlib import Path
 
@@ -141,8 +142,11 @@ GRAPHQL_JWT = {
         "graphql_auth.mutations.Register",
         "graphql_auth.mutations.ObtainJSONWebToken",
         "graphql_auth.mutations.SendPasswordResetEmail",
+        "graphql_auth.mutations.RefreshToken",
     ],
     "JWT_VERIFY_EXPIRATION": True,
+    "JWT_EXPIRATION_DELTA": timedelta(minutes=30),
+    "JWT_REFRESH_EXPIRATION_DELTA": timedelta(days=90),
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
 }
 
